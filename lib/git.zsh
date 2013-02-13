@@ -41,6 +41,28 @@ git_remote_status() {
     fi
 }
 
+git_remote_commit_status() {
+    remote=${$(git rev-parse --verify ${hook_com[branch]}@{upstream} --symbolic-full-name 2>/dev/null)/refs\/remotes\/}
+
+    if [[ -n ${remote} ]] ; then
+        ahead=$(git rev-list ${hook_com[branch]}@{upstream}..HEAD 2>/dev/null | wc -l | sed -e 's/^[ \t]*//' )
+        behind=$(git rev-list HEAD..${hook_com[branch]}@{upstream} 2>/dev/null | wc -l | sed -e 's/^[ \t]*//' )
+
+        prompt=""
+        if [ $behind -gt 0 ]
+        then
+          prompt="$ZSH_THEME_GIT_PROMPT_BEHIND_REMOTE$behind"
+        fi
+
+        if [ $ahead -gt 0 ]
+        then
+          prompt="$prompt $ZSH_THEME_GIT_PROMPT_AHEAD_REMOTE$ahead"
+        fi
+
+        echo $prompt
+    fi
+}
+
 # Checks if there are commits ahead from remote
 function git_prompt_ahead() {
   if $(echo "$(git log origin/$(current_branch)..HEAD 2> /dev/null)" | grep '^commit' &> /dev/null); then
